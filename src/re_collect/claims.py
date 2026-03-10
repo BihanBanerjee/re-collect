@@ -28,7 +28,6 @@ class Claim:
         last_reinforced_at: Unix timestamp when the claim was last reinforced
         support_count: Number of times this claim has been supported
     """
-
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     type: str = ""
     confidence: float = 0.0
@@ -38,7 +37,6 @@ class Claim:
     last_reinforced_at: float = field(default_factory=time.time)
     support_count: int = 1
 
-    
     def __post_init__(self) -> None:
         """Validate claim fields after initialization."""
         if not 0.0 <= self.confidence <= 1.0:
@@ -48,8 +46,8 @@ class Claim:
         if self.type not in VALID_CLAIM_TYPES:
             raise ValueError(f"type must be one of {VALID_CLAIM_TYPES}, got {self.type!r}")
         if self.support_count < 0:
-            raise ValueError(f"support_count must be a non-negative, got {self.support_count}")
-        # Convert list to tuple if passed ()
+            raise ValueError(f"support_count must be non-negative, got {self.support_count}")
+        # Convert list to tuple if passed (for backward compatibility)
         if isinstance(self.evidence, list):
             object.__setattr__(self, 'evidence', tuple(self.evidence))
 
@@ -61,7 +59,6 @@ class EpisodicClaim(Claim):
     Attributes:
         summary: A text summary of the episode
     """
-
     type: str = "episodic"
     summary: str = ""
 
@@ -78,7 +75,6 @@ class SemanticClaim(Claim):
         predicate: The relationship or property
         object: The object or value
     """
-
     type: str = "semantic"
     subject: str = ""
     predicate: str = ""
@@ -95,7 +91,6 @@ class ProceduralClaim(Claim):
         trigger: The condition that triggers the action
         action: The action to take when triggered
     """
-
     type: str = "procedural"
     trigger: str = ""
     action: str = ""
