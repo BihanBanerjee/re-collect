@@ -1,16 +1,15 @@
 """Claim dataclasses representing different types of beliefs.
 
-This module provides immutable dataclass representations for three types of claims:
+This module provides immutable dataclass representations for two types of claims:
 - EpisodicClaim: Events or experiences with a summary
 - SemanticClaim: Factual knowledge as subject-predicate-object triples
-- ProceduralClaim: Behavioral rules as trigger-action pairs
 """
 
 import time
 import uuid
 from dataclasses import dataclass, field
 
-VALID_CLAIM_TYPES = frozenset({"", "episodic", "semantic", "procedural"})
+VALID_CLAIM_TYPES = frozenset({"", "episodic", "semantic"})
 
 
 @dataclass(frozen=True)
@@ -19,7 +18,7 @@ class Claim:
 
     Attributes:
         id: Unique identifier for the claim (auto-generated UUID if not provided)
-        type: The claim type (episodic, semantic, procedural)
+        type: The claim type (episodic, semantic)
         confidence: Confidence score in range [0.0, 1.0] — how sure are we this is true?
         importance: Importance score in range [0.0, 1.0] — how useful is this for
                     future conversations? (0.3 = minor detail, 0.5 = normal, 0.9 = critical)
@@ -79,18 +78,3 @@ class SemanticClaim(Claim):
     subject: str = ""
     predicate: str = ""
     object: str = ""
-
-
-@dataclass(frozen=True)
-class ProceduralClaim(Claim):
-    """A claim representing a behavioral rule as a trigger-action pair.
-
-    Example: ProceduralClaim(trigger="user says hello", action="respond with greeting")
-
-    Attributes:
-        trigger: The condition that triggers the action
-        action: The action to take when triggered
-    """
-    type: str = "procedural"
-    trigger: str = ""
-    action: str = ""

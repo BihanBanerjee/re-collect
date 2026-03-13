@@ -9,8 +9,8 @@ from re_collect.db.database import Base
 class ClaimModel(Base):
     """SQLAlchemy model for claims.
 
-    All claim types (episodic, semantic, procedural) share one table.
-    Type-specific columns are nullable
+    All claim types (episodic, semantic) share one table.
+    Type-specific columns are nullable.
     """
 
     __tablename__ = "claims"
@@ -31,8 +31,4 @@ class ClaimModel(Base):
     subject: Mapped[str | None] = mapped_column(String, nullable=True)
     predicate: Mapped[str | None] = mapped_column(String, nullable=True)
     object: Mapped[str | None] = mapped_column(String, nullable=True)
-
-    # ProceduralClaim
-    trigger: Mapped[str | None] = mapped_column(Text, nullable=True)
-    action: Mapped[str | None] = mapped_column(Text, nullable=True)
 

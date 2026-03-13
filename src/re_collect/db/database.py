@@ -1,7 +1,7 @@
 """Database connection and session management.
 
-Uses lazy initialization - engine is created only when first accessed.
-SQLite only 
+Uses lazy initialization — engine is created only when first accessed.
+SQLite only (no PostgreSQL).
 """
 
 import os
@@ -14,6 +14,7 @@ class Base(DeclarativeBase):
     """Base class for all ORM models."""
     pass
 
+
 # Global instances (lazy initialized)
 _engine = None
 _SessionLocal = None
@@ -24,7 +25,7 @@ def get_engine(db_path: str | None = None):
 
     Args:
         db_path: Path to SQLite database file. If None, uses
-                  ~/.recollect/memory.db as default.
+                 ~/.recollect/memory.db as default.
     """
     global _engine
     if _engine is None:
@@ -32,11 +33,14 @@ def get_engine(db_path: str | None = None):
             db_dir = os.path.expanduser("~/.recollect")
             os.makedirs(db_dir, exist_ok=True)
             db_path = f"{db_dir}/memory.db"
-        
+
         database_url = f"sqlite:///{db_path}" if db_path != ":memory:" else "sqlite://"
-        _engine = create_engine(database_url, connect_args={"check_same_thread": False})
-    
+        _engine = create_engine(
+            database_url,
+            connect_args={"check_same_thread": False},
+        )
     return _engine
+
 
 def get_session_local(db_path: str | None = None):
     """Get or create the SessionLocal factory."""
@@ -45,9 +49,10 @@ def get_session_local(db_path: str | None = None):
         _SessionLocal = sessionmaker(
             autoflush=False,
             autocommit=False,
-            bind=get_engine(db_path)
+            bind=get_engine(db_path),
         )
     return _SessionLocal
+
 
 def SessionLocal(db_path: str | None = None) -> Session:
     """Create a new database session."""
@@ -55,16 +60,17 @@ def SessionLocal(db_path: str | None = None) -> Session:
 
 
 def get_db(db_path: str | None = None):
-    """Database session generator. Yields a session and ensures it is closed."""
+    """Database session generator. Yields a session and ensures it's closed."""
     db = SessionLocal(db_path)
     try:
         yield db
     finally:
         db.close()
 
-def create_tables(db_path: str | None = None):
+
+def create_tables(db_path: str | None = None) -> None:
     """Create all database tables. Safe to call multiple times."""
-    import re_collect.db.models
+    import re_collect.db.models  # noqa: F401 — ensure models are registered
     Base.metadata.create_all(bind=get_engine(db_path))
 
 
