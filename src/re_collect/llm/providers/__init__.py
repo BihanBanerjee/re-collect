@@ -75,11 +75,11 @@ Example (with vector backends):
     )
 """
 
-from recollect.llm.providers.anthropic import AnthropicProvider
-from recollect.llm.providers.local import CachedEmbedder, LocalEmbedder
-from recollect.llm.providers.ollama import OllamaProvider
-from recollect.llm.providers.openai import OpenAIProvider
-from recollect.llm.providers.openrouter import OpenRouterProvider
+from re_collect.llm.providers.anthropic import AnthropicProvider
+from re_collect.llm.providers.local import CachedEmbedder, LocalEmbedder
+from re_collect.llm.providers.ollama import OllamaProvider
+from re_collect.llm.providers.openai import OpenAIProvider
+from re_collect.llm.providers.openrouter import OpenRouterProvider
 
 __all__ = [
     # Cloud providers

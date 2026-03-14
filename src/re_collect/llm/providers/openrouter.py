@@ -31,7 +31,7 @@ Example:
 
 from __future__ import annotations
 
-from recollect.llm.providers.openai import OpenAIProvider
+from re_collect.llm.providers.openai import OpenAIProvider
 
 # OpenRouter API endpoint
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
