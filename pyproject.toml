@@ -6,6 +6,7 @@ readme = "README.md"
 authors = [
     { name = "Bihan Banerjee", email = "banerjeebihan456@gmail.com" }
 ]
+license = "MIT"
 requires-python = ">=3.12"
 dependencies = [
     "sqlalchemy>=2.0",
