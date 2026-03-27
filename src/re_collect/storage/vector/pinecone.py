@@ -4,7 +4,7 @@ Installation:
     pip install pinecone-client
 
 Example:
-    from recollect.storage.vector import PineconeBackend
+    from re_collect.storage.vector import PineconeBackend
 
     vectors = PineconeBackend(
         api_key="your-api-key",

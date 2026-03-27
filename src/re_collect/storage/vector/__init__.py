@@ -15,7 +15,7 @@ Available backends:
 - PineconeBackend: Production Pinecone managed service
 
 Example (FAISS, local):
-    from recollect.storage.vector import FAISSBackend
+    from re_collect.storage.vector import FAISSBackend
 
     vectors = FAISSBackend(
         embed_fn=model.encode,
@@ -24,7 +24,7 @@ Example (FAISS, local):
     candidate_ids = vectors.search("user preferences", k=10)
 
 Example (Qdrant):
-    from recollect.storage.vector import QdrantBackend
+    from re_collect.storage.vector import QdrantBackend
 
     vectors = QdrantBackend(
         url="http://localhost:6333",
@@ -34,7 +34,7 @@ Example (Qdrant):
     )
 
 Example (Pinecone):
-    from recollect.storage.vector import PineconeBackend
+    from re_collect.storage.vector import PineconeBackend
 
     vectors = PineconeBackend(
         api_key="your-api-key",

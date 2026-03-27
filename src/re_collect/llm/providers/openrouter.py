@@ -8,7 +8,7 @@ Installation:
     pip install openai  # Uses the openai SDK under the hood
 
 Example:
-    from recollect.llm.providers import OpenRouterProvider
+    from re_collect.llm.providers import OpenRouterProvider
 
     provider = OpenRouterProvider(api_key="sk-or-...")
 

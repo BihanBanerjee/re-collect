@@ -15,7 +15,7 @@ Installation:
     3. pip install httpx
 
 Example:
-    from recollect.llm.providers import OllamaProvider
+    from re_collect.llm.providers import OllamaProvider
 
     # Create provider (uses local Ollama server)
     provider = OllamaProvider(model="llama3.2")

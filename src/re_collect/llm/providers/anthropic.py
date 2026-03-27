@@ -10,7 +10,7 @@ Installation:
     pip install anthropic
 
 Example:
-    from recollect.llm.providers import AnthropicProvider
+    from re_collect.llm.providers import AnthropicProvider
 
     # Create provider
     provider = AnthropicProvider(api_key="your-api-key")

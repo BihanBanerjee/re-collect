@@ -21,15 +21,15 @@ Example:
     claim = SemanticClaim(subject="user", predicate="likes", object="pizza")
 
     # With LLM extraction
-    from recollect.llm.providers import OpenAIProvider
-    from recollect.extractors import LLMExtractor
+    from re_collect.llm.providers import OpenAIProvider
+    from re_collect.extractors import LLMExtractor
 
     llm = OpenAIProvider(api_key="...")
     extractor = LLMExtractor(llm)
     claims = extractor.extract("I love pizza")
 
     # With LLM agent
-    from recollect.agents import MemoryAgent
+    from re_collect.agents import MemoryAgent
     agent = MemoryAgent(memory=memory, llm=llm)
     response = agent.answer("What food does the user like?")
 """

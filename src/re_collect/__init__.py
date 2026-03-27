@@ -11,9 +11,9 @@ the concept of beliefs rather than simple logs or storage. Key features:
 
 Basic Example:
     from recollect import Memory, SemanticClaim
-    from recollect.db import SessionLocal, create_tables
-    from recollect.storage import MemoryStore
-    from recollect.storage.vector import FAISSBackend
+    from re_collect.db import SessionLocal, create_tables
+    from re_collect.storage import MemoryStore
+    from re_collect.storage.vector import FAISSBackend
 
     create_tables()
     db = SessionLocal()
@@ -39,8 +39,8 @@ Optional Modules:
     - recollect.llm.providers: LLM providers (OpenAI, Anthropic, Ollama)
 
 LangChain Agent Example:
-    from recollect.agents import MemoryAgent
-    from recollect.storage import MemoryStore
+    from re_collect.agents import MemoryAgent
+    from re_collect.storage import MemoryStore
     from langchain_ollama import ChatOllama
 
     # Install with: pip install re-collect[langchain,qdrant]

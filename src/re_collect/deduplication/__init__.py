@@ -6,7 +6,7 @@ Simple two-step pipeline:
 3. Execute the action against storage
 
 Example:
-    from recollect.deduplication import ClaimDeduplicator
+    from re_collect.deduplication import ClaimDeduplicator
 
     deduplicator = ClaimDeduplicator(
         storage=storage,

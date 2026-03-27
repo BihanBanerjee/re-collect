@@ -4,7 +4,7 @@ Installation:
     pip install qdrant-client
 
 Example:
-    from recollect.storage.vector import QdrantBackend
+    from re_collect.storage.vector import QdrantBackend
 
     vectors = QdrantBackend(
         url="http://localhost:6333",

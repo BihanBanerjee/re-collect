@@ -25,7 +25,7 @@ Installation:
     pip install sentence-transformers
 
 Example (OpenAI - cloud):
-    from recollect.llm.providers import OpenAIProvider
+    from re_collect.llm.providers import OpenAIProvider
 
     provider = OpenAIProvider(api_key="sk-...")
 
@@ -37,35 +37,35 @@ Example (OpenAI - cloud):
     embedding = provider.embed("Hello world")
 
 Example (Anthropic - cloud):
-    from recollect.llm.providers import AnthropicProvider
+    from re_collect.llm.providers import AnthropicProvider
 
     provider = AnthropicProvider(api_key="sk-ant-...")
     response = provider.generate("What is 2+2?")
 
 Example (Ollama - local, free):
-    from recollect.llm.providers import OllamaProvider
+    from re_collect.llm.providers import OllamaProvider
 
     # Requires: ollama pull llama3.2
     provider = OllamaProvider(model="llama3.2")
     response = provider.generate("What is 2+2?")
 
 Example (Local embeddings - free):
-    from recollect.llm.providers import LocalEmbedder
+    from re_collect.llm.providers import LocalEmbedder
 
     embedder = LocalEmbedder()  # Uses all-MiniLM-L6-v2
     embedding = embedder.embed("Hello world")
 
 Example (with extractors):
-    from recollect.llm.providers import OpenAIProvider
-    from recollect.extractors import LLMExtractor
+    from re_collect.llm.providers import OpenAIProvider
+    from re_collect.extractors import LLMExtractor
 
     provider = OpenAIProvider(api_key="sk-...")
     extractor = LLMExtractor(provider)
     claims = extractor.extract("I love pizza on Fridays")
 
 Example (with vector backends):
-    from recollect.llm.providers import LocalEmbedder
-    from recollect.storage.vector import QdrantBackend
+    from re_collect.llm.providers import LocalEmbedder
+    from re_collect.storage.vector import QdrantBackend
 
     embedder = LocalEmbedder()
     vectors = QdrantBackend.from_provider(

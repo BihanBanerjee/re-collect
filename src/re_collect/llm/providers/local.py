@@ -7,7 +7,7 @@ Installation:
     pip install sentence-transformers
 
 Example:
-    from recollect.llm.providers import LocalEmbedder
+    from re_collect.llm.providers import LocalEmbedder
 
     # Create embedder with default model
     embedder = LocalEmbedder()
@@ -50,7 +50,7 @@ class LocalEmbedder:
         embedding = embedder.embed("User likes pizza")
 
         # Use with vector backend
-        from recollect.storage.vector import QdrantBackend
+        from re_collect.storage.vector import QdrantBackend
         vectors = QdrantBackend.from_provider(
             url="http://localhost:6333",
             collection_name="beliefs",
@@ -213,7 +213,7 @@ class CachedEmbedder:
     in memory. Useful when the same texts are embedded multiple times.
 
     Example:
-        from recollect.llm.providers import LocalEmbedder, CachedEmbedder
+        from re_collect.llm.providers import LocalEmbedder, CachedEmbedder
 
         base_embedder = LocalEmbedder()
         embedder = CachedEmbedder(base_embedder, max_size=10000)

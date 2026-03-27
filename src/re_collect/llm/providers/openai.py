@@ -7,7 +7,7 @@ Installation:
     pip install openai
 
 Example:
-    from recollect.llm.providers import OpenAIProvider
+    from re_collect.llm.providers import OpenAIProvider
 
     # Create provider
     provider = OpenAIProvider(api_key="your-api-key")

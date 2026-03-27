@@ -98,9 +98,9 @@ class MemoryStore:
     vectors provide fuzzy recall.
 
     Example:
-        from recollect.db import SessionLocal, create_tables
-        from recollect.storage import MemoryStore
-        from recollect.storage.vector import FAISSBackend
+        from re_collect.db import SessionLocal, create_tables
+        from re_collect.storage import MemoryStore
+        from re_collect.storage.vector import FAISSBackend
 
         create_tables()
         db = SessionLocal()
