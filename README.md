@@ -65,10 +65,10 @@ pip install "re-collect[all]"
 ## Quick Start
 
 ```python
-from re_collect import Memory, SemanticClaim, EpisodicClaim
-from re_collect.db import SessionLocal, create_tables
-from re_collect.storage import MemoryStore
-from re_collect.storage.vector import FAISSBackend
+from recollectx import Memory, SemanticClaim, EpisodicClaim
+from recollectx.db import SessionLocal, create_tables
+from recollectx.storage import MemoryStore
+from recollectx.storage.vector import FAISSBackend
 
 # 1. Set up the database
 create_tables()
@@ -117,7 +117,7 @@ print(explanation["contradicted_by"]) # belief IDs that contradict it
 Claims are immutable dataclasses representing beliefs:
 
 ```python
-from re_collect import SemanticClaim, EpisodicClaim
+from recollectx import SemanticClaim, EpisodicClaim
 
 # A fact: subject → predicate → object
 fact = SemanticClaim(
@@ -154,8 +154,8 @@ event = EpisodicClaim(
 `Memory` is the central interface. It wires together storage, write policies, the belief graph, optional LLM updater, and confidence propagation:
 
 ```python
-from re_collect import Memory
-from re_collect.policies import MinConfidence, MinEvidence
+from recollectx import Memory
+from recollectx.policies import MinConfidence, MinEvidence
 
 memory = Memory(
     storage=store,
@@ -199,7 +199,7 @@ print(result.cycle_detected)     # True if circular reasoning was found
 Policies filter claims before they reach storage. Combine with `&`:
 
 ```python
-from re_collect.policies import MinConfidence, MinEvidence
+from recollectx.policies import MinConfidence, MinEvidence
 
 # Only store claims with confidence >= 0.6 and at least 1 piece of evidence
 policy = MinConfidence(0.6) & MinEvidence(1)
@@ -210,7 +210,7 @@ memory = Memory(storage=store, write_policy=policy)
 Custom policies implement a simple callable protocol:
 
 ```python
-from re_collect.policies.base import Decision
+from recollectx.policies.base import Decision
 
 class MyPolicy:
     def __call__(self, claim, memory) -> Decision:
@@ -226,7 +226,7 @@ class MyPolicy:
 When beliefs are related, confidence flows between them automatically:
 
 ```python
-from re_collect import Memory, PropagationConfig
+from recollectx import Memory, PropagationConfig
 
 config = PropagationConfig(
     support_boost=0.10,        # supports increase confidence by this amount
@@ -244,7 +244,7 @@ memory = Memory(storage=store, propagation_config=config)
 ### LLM Providers
 
 ```python
-from re_collect.llm.providers import OpenAIProvider, AnthropicProvider, OllamaProvider
+from recollectx.llm.providers import OpenAIProvider, AnthropicProvider, OllamaProvider
 
 # OpenAI (requires re-collect[openai])
 llm = OpenAIProvider(api_key="sk-...", model="gpt-4o-mini")
@@ -261,7 +261,7 @@ llm = OllamaProvider(model="llama3", base_url="http://localhost:11434")
 The `MemoryUpdater` uses an LLM to make intelligent write decisions:
 
 ```python
-from re_collect import Memory, MemoryUpdater
+from recollectx import Memory, MemoryUpdater
 
 updater = MemoryUpdater(llm=llm, storage=store)
 memory = Memory(storage=store, updater=updater)
@@ -274,7 +274,7 @@ memory.store(new_claim)
 ### Claim Extraction from Text
 
 ```python
-from re_collect.extractors import LLMExtractor
+from recollectx.extractors import LLMExtractor
 
 extractor = LLMExtractor(llm_provider=llm, min_confidence=0.5, max_claims_per_text=10)
 
@@ -292,7 +292,7 @@ Vector backends enable semantic (similarity) search over beliefs.
 ### FAISS (local, no server needed)
 
 ```python
-from re_collect.storage.vector import FAISSBackend
+from recollectx.storage.vector import FAISSBackend
 
 vectors = FAISSBackend(embed_fn=my_embed_fn, dimension=384)
 ```
@@ -300,7 +300,7 @@ vectors = FAISSBackend(embed_fn=my_embed_fn, dimension=384)
 ### Qdrant
 
 ```python
-from re_collect.storage.vector import QdrantBackend
+from recollectx.storage.vector import QdrantBackend
 
 vectors = QdrantBackend(
     url="http://localhost:6333",
@@ -313,7 +313,7 @@ vectors = QdrantBackend(
 ### Pinecone
 
 ```python
-from re_collect.storage.vector import PineconeBackend
+from recollectx.storage.vector import PineconeBackend
 
 vectors = PineconeBackend(
     api_key="your-api-key",
@@ -329,7 +329,7 @@ vectors = PineconeBackend(
 Answer questions by letting an agent retrieve from memory using tools:
 
 ```python
-from re_collect.agents import MemoryAgent
+from recollectx.agents import MemoryAgent
 from langchain_ollama import ChatOllama
 
 llm = ChatOllama(model="llama3")
@@ -349,7 +349,7 @@ Available retrieval tools: `search_memories`, `get_recent_memories`, `get_facts_
 Detect and merge duplicate or near-duplicate beliefs:
 
 ```python
-from re_collect.deduplication import ClaimDeduplicator
+from recollectx.deduplication import ClaimDeduplicator
 
 deduplicator = ClaimDeduplicator(
     storage=store,

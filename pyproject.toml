@@ -1,5 +1,5 @@
 [project]
-name = "re-collect"
+name = "recollectx"
 version = "0.2.0"
 description = "Belief-centric memory layer for agentic AI systems"
 readme = "README.md"
@@ -32,18 +32,18 @@ qdrant = ["qdrant-client>=1.7"]
 pinecone = ["pinecone-client>=3.0"]
 local = ["sentence-transformers>=2.2", "numpy>=1.24", "faiss-cpu>=1.7"]
 llm = [
-    "re-collect[openai]",
-    "re-collect[anthropic]",
-    "re-collect[ollama]",
+    "recollectx[openai]",
+    "recollectx[anthropic]",
+    "recollectx[ollama]",
 ]
 vector = [
-    "re-collect[qdrant]",
-    "re-collect[pinecone]",
+    "recollectx[qdrant]",
+    "recollectx[pinecone]",
 ]
 all = [
-    "re-collect[llm]",
-    "re-collect[vector]",
-    "re-collect[local]",
+    "recollectx[llm]",
+    "recollectx[vector]",
+    "recollectx[local]",
 ]
 
 [build-system]
@@ -67,7 +67,7 @@ python_version = "3.12"
 strict = true
 warn_return_any = true
 warn_unused_configs = true
-packages = ["re_collect"]
+packages = ["recollectx"]
 mypy_path = "src"
 
 [tool.ruff]
