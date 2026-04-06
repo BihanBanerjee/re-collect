@@ -94,7 +94,10 @@ Output: {"memories": [
     {"content": "Currently confused about async/await", "type": "episodic", "confidence": 0.85}
 ]}
 
-# Remember:
+# Important:
+- Extract ONLY the user's CURRENT state, preferences, and facts
+- Do NOT extract historical or negated facts as separate memories (e.g., if user says "I switched from chess to rock climbing", extract "Does rock climbing" only — the system tracks the change automatically)
+- Do NOT create "Previously..." or "No longer..." or "Used to..." claims — these are handled by the memory update system
 - Today's date is {date}
 - Extract ONLY from user messages
 - Assign confidence based on clarity (direct statements: 0.9+, implications: 0.7-0.85)

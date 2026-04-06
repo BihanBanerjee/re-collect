@@ -102,13 +102,28 @@ class MemoryUpdater:
 
         prompt = (
             "You are a smart memory manager. Compare new memories with existing ones.\n\n"
-            "STEP 1 — Decide the action:\n"
-            "  ADD (new info), UPDATE (same topic, better info), DELETE (contradicts old), NONE (duplicate).\n\n"
+            "STEP 1 — Decide the action for the new memory:\n"
+            "  ADD: Store as a new memory. Use when the new memory contains genuinely new information.\n"
+            "  UPDATE: Merge into an existing memory. Use ONLY when the new memory adds detail to the same fact "
+            "(e.g. 'likes pizza' → 'likes pepperoni pizza'). Provide target_id and merged_content.\n"
+            "  DELETE: Remove an outdated existing memory and store the new one. Use ONLY when the old memory "
+            "is completely obsolete and should not be kept at all.\n"
+            "  NONE: Skip. The new memory is an exact duplicate of an existing one.\n\n"
             "STEP 2 — Detect relationships between the new memory and each existing memory:\n"
-            "  supports: new memory reinforces/confirms an existing memory\n"
-            "  contradicts: new memory conflicts with an existing memory\n"
-            "  derives: new memory is a logical consequence of an existing memory\n"
+            "  supports: new memory reinforces, confirms, or coexists with an existing memory.\n"
+            "  contradicts: new memory REPLACES or INVALIDATES an existing memory. "
+            "The key test: can both be true at the same time? If NO → contradicts.\n"
+            "  derives: new memory is a logical consequence of an existing memory.\n"
             "  Only include relationships that clearly exist. Skip if none.\n\n"
+            "IMPORTANT — When a user's belief, preference, or status CHANGES:\n"
+            "  Action = ADD the new fact. Relationship = contradicts the old fact.\n"
+            "  Do NOT create intermediate 'Previously...' claims. The contradiction edge preserves history.\n\n"
+            "Examples:\n"
+            '  Old: "user likes chess" → New: "user likes rock climbing" → ADD + contradicts old (replaced hobby)\n'
+            '  Old: "user is a student" → New: "user is an engineer" → ADD + contradicts old (changed role)\n'
+            '  Old: "user prefers Python" → New: "user prefers TypeScript" → ADD + contradicts old (changed preference)\n'
+            '  Old: "user likes pizza" → New: "user likes sushi" → ADD + supports old (both can be true)\n'
+            '  Old: "user is an engineer" → New: "user is an engineer at Google" → UPDATE (more detail, same fact)\n\n'
             "Return JSON:\n"
             '{"decisions": [{"new_memory": "...", "action": "ADD|UPDATE|DELETE|NONE", '
             '"target_id": "existing ID or null", "merged_content": "merged text if UPDATE, null otherwise", '
