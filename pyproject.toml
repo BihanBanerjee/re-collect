@@ -1,6 +1,6 @@
 [project]
 name = "recollectx"
-version = "0.2.0"
+version = "0.2.1"
 description = "Belief-centric memory layer for agentic AI systems"
 readme = "README.md"
 authors = [

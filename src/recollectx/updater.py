@@ -281,6 +281,8 @@ class MemoryUpdater:
 
             if not existing_id or not relation:
                 continue
+            if existing_id == claim_id:
+                continue
             if existing_id not in valid_ids:
                 continue
             if relation not in ("supports", "contradicts", "derives"):
