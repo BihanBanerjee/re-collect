@@ -9,6 +9,7 @@ The extractor classifies memories into two types:
 """
 
 import json
+import re
 import time
 from typing import Any
 

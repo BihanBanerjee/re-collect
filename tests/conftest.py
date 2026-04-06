@@ -44,6 +44,36 @@ class MockVectorBackend:
 
 
 # ---------------------------------------------------------------------------
+# Mock Embedding Provider
+# ---------------------------------------------------------------------------
+
+class MockEmbeddingProvider:
+    """Deterministic embeddings based on text content.
+
+    Returns a 4-dimensional unit vector where each dimension is derived
+    from the characters in the text. Identical texts → identical vectors
+    (similarity = 1.0). Completely different texts → near-zero similarity.
+    """
+
+    def embed(self, text: str) -> list[float]:
+        import math
+        # Produce a repeatable 4-d vector from text
+        seed = [float(ord(c)) for c in (text or " ")]
+        dims = 4
+        v = [sum(seed[i::dims]) for i in range(dims)]
+        # Normalise
+        norm = math.sqrt(sum(x * x for x in v)) or 1.0
+        return [x / norm for x in v]
+
+    def embed_batch(self, texts: list[str]) -> list[list[float]]:
+        return [self.embed(t) for t in texts]
+
+    @property
+    def dimension(self) -> int:
+        return 4
+
+
+# ---------------------------------------------------------------------------
 # Mock LLM Provider
 # ---------------------------------------------------------------------------
 
@@ -100,6 +130,11 @@ def mock_vectors():
 @pytest.fixture
 def mock_llm():
     return MockLLMProvider()
+
+
+@pytest.fixture
+def mock_embedder():
+    return MockEmbeddingProvider()
 
 
 @pytest.fixture
