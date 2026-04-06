@@ -56,9 +56,12 @@ Ask: "If I meet this user in a NEW conversation, would this memory be useful?"
 - "Always prefers code examples" → YES, enduring preference → SEMANTIC
 
 # Output Format (JSON):
+- **Semantic** memories use subject-predicate-object fields. Use snake_case for predicate (e.g. has_name, works_as, lives_in, likes, loves, prefers, dislikes, hates, knows, is_a, has_age, wants_to).
+- **Episodic** memories use a plain content string.
+
 {
     "memories": [
-        {"content": "extracted fact", "type": "semantic", "confidence": 0.95},
+        {"subject": "user", "predicate": "has_name", "object": "Sarah", "type": "semantic", "confidence": 0.95},
         {"content": "extracted event", "type": "episodic", "confidence": 0.9}
     ]
 }
@@ -67,25 +70,25 @@ Ask: "If I meet this user in a NEW conversation, would this memory be useful?"
 
 Input: "Hi, my name is Sarah and I work as a data scientist."
 Output: {"memories": [
-    {"content": "Name is Sarah", "type": "semantic", "confidence": 0.95},
-    {"content": "Works as a data scientist", "type": "semantic", "confidence": 0.95}
+    {"subject": "user", "predicate": "has_name", "object": "Sarah", "type": "semantic", "confidence": 0.95},
+    {"subject": "user", "predicate": "works_as", "object": "data scientist", "type": "semantic", "confidence": 0.95}
 ]}
 
 Input: "Yesterday I had pizza for lunch and it was amazing."
 Output: {"memories": [
     {"content": "Had pizza for lunch yesterday", "type": "episodic", "confidence": 0.9},
-    {"content": "Enjoys pizza", "type": "semantic", "confidence": 0.7}
+    {"subject": "user", "predicate": "loves", "object": "pizza", "type": "semantic", "confidence": 0.7}
 ]}
 
 Input: "I always prefer code examples when learning new concepts."
 Output: {"memories": [
-    {"content": "Prefers code examples when learning", "type": "semantic", "confidence": 0.9}
+    {"subject": "user", "predicate": "prefers", "object": "code examples when learning", "type": "semantic", "confidence": 0.9}
 ]}
 
 Input: "I live in San Francisco and I really love hiking on weekends."
 Output: {"memories": [
-    {"content": "Lives in San Francisco", "type": "semantic", "confidence": 0.95},
-    {"content": "Loves hiking on weekends", "type": "semantic", "confidence": 0.9}
+    {"subject": "user", "predicate": "lives_in", "object": "San Francisco", "type": "semantic", "confidence": 0.95},
+    {"subject": "user", "predicate": "loves", "object": "hiking on weekends", "type": "semantic", "confidence": 0.9}
 ]}
 
 Input: "Can you help me understand how async/await works? I'm confused."
@@ -145,7 +148,7 @@ MEMORY_UPDATE_PROMPT = """You are a smart memory manager. Compare new memories w
             "new_memory": "the new memory content",
             "action": "ADD|UPDATE|DELETE|NONE",
             "target_id": "existing memory ID if UPDATE/DELETE, null if ADD",
-            "merged_content": "merged content if UPDATE, null otherwise",
+            "merged_content": "for UPDATE: the new object value only (e.g. 'senior engineer', not the full triple). null for other actions.",
             "reason": "brief explanation"
         }
     ]
@@ -166,8 +169,8 @@ Output:
             "new_memory": "Loves pepperoni pizza",
             "action": "UPDATE",
             "target_id": "1",
-            "merged_content": "Loves pepperoni pizza",
-            "reason": "More specific than 'likes pizza'"
+            "merged_content": "pepperoni pizza",
+            "reason": "More specific than 'likes pizza'. merged_content is the new object value only."
         },
         {
             "new_memory": "Name is John",
@@ -439,11 +442,17 @@ EXTRACTION_SCHEMA = {
             "items": {
                 "type": "object",
                 "properties": {
+                    # semantic fields
+                    "subject": {"type": "string"},
+                    "predicate": {"type": "string"},
+                    "object": {"type": "string"},
+                    # episodic field
                     "content": {"type": "string"},
+                    # shared fields
                     "type": {"type": "string", "enum": ["semantic", "episodic"]},
                     "confidence": {"type": "number", "minimum": 0, "maximum": 1}
                 },
-                "required": ["content", "type", "confidence"]
+                "required": ["type", "confidence"]
             }
         }
     },

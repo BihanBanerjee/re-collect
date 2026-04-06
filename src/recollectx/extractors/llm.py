@@ -9,7 +9,6 @@ The extractor classifies memories into two types:
 """
 
 import json
-import re
 import time
 from typing import Any
 
@@ -173,36 +172,40 @@ class LLMExtractor:
     ) -> list[Claim]:
         """Convert LLM response to Claim objects.
 
-        The new format uses:
-        {
-            "memories": [
-                {"content": "...", "type": "semantic|episodic", "confidence": 0.9}
-            ]
-        }
-
-        Args:
-            response: LLM response matching EXTRACTION_SCHEMA
-            context: Optional context passed to extract()
-
-        Returns:
-            List of Claim objects
+        Semantic memories: {"subject": "user", "predicate": "works_as", "object": "engineer", "type": "semantic", "confidence": 0.9}
+        Episodic memories: {"content": "Had coffee this morning", "type": "episodic", "confidence": 0.8}
         """
         claims: list[Claim] = []
-        subject = self._get_subject(context)
+        default_subject = self._get_subject(context)
 
         for memory_data in response.get("memories", []):
-            content = memory_data.get("content", "")
             memory_type = memory_data.get("type", "")
-            confidence = memory_data.get("confidence", 0.5)
+            confidence = float(memory_data.get("confidence", 0.5))
 
-            if not content or not memory_type:
+            if not memory_type:
                 continue
 
             try:
                 if memory_type == "episodic":
+                    content = memory_data.get("content", "").strip()
+                    if not content:
+                        continue
                     claim = self._create_episodic_claim(content, confidence, context)
+
                 elif memory_type == "semantic":
-                    claim = self._create_semantic_claim(content, confidence, subject)
+                    subject = memory_data.get("subject", default_subject).strip() or default_subject
+                    predicate = memory_data.get("predicate", "").strip()
+                    obj = memory_data.get("object", "").strip()
+                    if not predicate or not obj:
+                        continue
+                    claim = SemanticClaim(
+                        subject=subject,
+                        predicate=predicate,
+                        object=obj,
+                        confidence=confidence,
+                        evidence=(f"{subject} {predicate} {obj}",),
+                    )
+
                 else:
                     continue
 
@@ -241,100 +244,4 @@ class LLMExtractor:
             evidence=(content,),
         )
 
-    def _create_semantic_claim(
-        self, content: str, confidence: float, subject: str
-    ) -> SemanticClaim:
-        """Create a SemanticClaim from extracted content.
-
-        Parses natural language content into subject-predicate-object triple.
-        """
-        # Parse the content into subject-predicate-object
-        parsed = self._parse_semantic_content(content, subject)
-
-        return SemanticClaim(
-            subject=parsed["subject"],
-            predicate=parsed["predicate"],
-            object=parsed["object"],
-            confidence=confidence,
-            evidence=(content,),
-        )
-
-    def _parse_semantic_content(self, content: str, default_subject: str) -> dict[str, str]:
-        """Parse natural language content into subject-predicate-object triple.
-
-        Examples:
-            "Name is Sarah" -> {"subject": "user", "predicate": "has_name", "object": "Sarah"}
-            "Works as data scientist" -> {"subject": "user", "predicate": "works_as", "object": "data scientist"}
-            "Loves pizza" -> {"subject": "user", "predicate": "loves", "object": "pizza"}
-        """
-        content_lower = content.lower()
-
-        # Pattern: "X is Y" or "X's Y is Z"
-        is_match = re.match(r"^(?:user['']?s?\s+)?(\w+)\s+is\s+(.+)$", content, re.IGNORECASE)
-        if is_match:
-            attr = is_match.group(1).lower()
-            value = is_match.group(2).strip()
-            return {
-                "subject": default_subject,
-                "predicate": f"has_{attr}" if attr != "a" else "is",
-                "object": value,
-            }
-
-        # Pattern: "Works as X" or "Works at X"
-        works_match = re.match(r"^works?\s+(as|at)\s+(.+)$", content, re.IGNORECASE)
-        if works_match:
-            return {
-                "subject": default_subject,
-                "predicate": "works_as",
-                "object": works_match.group(2).strip(),
-            }
-
-        # Pattern: "Lives in X"
-        lives_match = re.match(r"^lives?\s+in\s+(.+)$", content, re.IGNORECASE)
-        if lives_match:
-            return {
-                "subject": default_subject,
-                "predicate": "lives_in",
-                "object": lives_match.group(1).strip(),
-            }
-
-        # Pattern: "Loves/Likes/Enjoys/Prefers X"
-        preference_match = re.match(
-            r"^(loves?|likes?|enjoys?|prefers?|hates?|dislikes?)\s+(.+)$",
-            content,
-            re.IGNORECASE,
-        )
-        if preference_match:
-            verb = preference_match.group(1).lower()
-            # Normalize verb
-            if verb.endswith("s"):
-                verb = verb
-            else:
-                verb = verb + "s"
-            return {
-                "subject": default_subject,
-                "predicate": verb,
-                "object": preference_match.group(2).strip(),
-            }
-
-        # Pattern: "Is learning X" or "Knows X"
-        skill_match = re.match(
-            r"^(?:is\s+)?(learning|knows?|studies|studying)\s+(.+)$",
-            content,
-            re.IGNORECASE,
-        )
-        if skill_match:
-            verb = skill_match.group(1).lower()
-            return {
-                "subject": default_subject,
-                "predicate": verb if verb != "know" else "knows",
-                "object": skill_match.group(2).strip(),
-            }
-
-        # Fallback: Use content as-is with generic predicate
-        return {
-            "subject": default_subject,
-            "predicate": "has_attribute",
-            "object": content,
-        }
 

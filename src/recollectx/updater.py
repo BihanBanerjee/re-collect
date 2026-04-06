@@ -315,12 +315,12 @@ class MemoryUpdater:
 
 
 def _rebuild_claim(original: Claim, merged_content: str) -> Claim:
-    """Rebuild a claim with updated content from the LLM."""
+    """Rebuild a claim with updated content from the LLM.
+
+    For SemanticClaims, merged_content is expected to be the new object value only
+    (the update prompt instructs the LLM to return just the object, not the full triple).
+    """
     if isinstance(original, SemanticClaim):
-        # Strip subject+predicate prefix if the LLM returned the full triple
-        prefix = f"{original.subject} {original.predicate} "
-        if merged_content.lower().startswith(prefix.lower()):
-            merged_content = merged_content[len(prefix):]
         return SemanticClaim(
             id=original.id,
             subject=original.subject,
