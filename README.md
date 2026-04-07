@@ -1,63 +1,64 @@
-# re-collect
+# recollectx
 
-A belief-centric memory layer for agentic AI systems.
+[![PyPI version](https://img.shields.io/pypi/v/recollectx.svg)](https://pypi.org/project/recollectx/)
+[![Python](https://img.shields.io/pypi/pyversions/recollectx.svg)](https://pypi.org/project/recollectx/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Tests](https://img.shields.io/badge/tests-208%20passing-brightgreen.svg)](#)
 
-re-collect structures memory as **beliefs** — not logs. Every piece of information is stored as a typed claim with a confidence score, supporting evidence, and explicit relationships to other beliefs. This makes memory inspectable, revisable, and suitable for agents that need to reason about what they know and why.
+**Belief-centric memory layer for agentic AI systems.**
+
+Most memory libraries store what a user said. recollectx stores what the user *believes* — and tracks *why*.
+
+Every piece of information is a typed claim with a confidence score, supporting evidence, and explicit relationships to other beliefs. Contradictions reduce confidence automatically. Supports boost it. The entire justification chain is inspectable at any time.
+
+```bash
+pip install recollectx
+```
 
 ---
 
-## Features
+## Why recollectx?
 
-- **Structured beliefs** — two claim types: `SemanticClaim` (facts as subject-predicate-object triples) and `EpisodicClaim` (events with a summary)
-- **Confidence scoring** — every claim has a confidence value in `[0.0, 1.0]`; contradictions decay it, supports boost it
-- **Belief graph** — tracks `supports`, `contradicts`, `derives`, and `similar` relationships between beliefs
-- **Write policies** — composable filters that accept or reject claims before storage
-- **LLM-powered updates** — intelligent ADD / UPDATE / DELETE decisions using any LLM provider
-- **Pluggable storage** — SQLite (SQLAlchemy) + optional vector backends (FAISS, Qdrant, Pinecone)
-- **LangGraph agent** — answer questions by retrieving from memory using tool-based reasoning
-- **Automatic extraction** — extract structured claims from raw text via LLM
-- **Deduplication** — detect and merge duplicate claims using embedding similarity + LLM merge decisions
-- **Deep explanations** — trace why a belief exists with recursive justification chains
+| Feature | recollectx | mem0 | Zep | LangMem |
+|---|---|---|---|---|
+| Typed claims (episodic / semantic) | ✅ | ❌ | ❌ | ❌ |
+| Belief graph (supports / contradicts / derives) | ✅ | ❌ | ✅ | ❌ |
+| Confidence propagation on contradictions | ✅ | ❌ | ❌ | ❌ |
+| Importance-modulated temporal decay | ✅ | ❌ | ❌ | ❌ |
+| Pure Python library (no service required) | ✅ | ✅ | ❌ | ✅ |
+| Pluggable LLM + vector backends | ✅ | ✅ | ❌ | ✅ |
+| Deep justification chains | ✅ | ❌ | ❌ | ❌ |
+
+**recollectx is the only Python memory library that combines structured belief semantics with a contradiction-aware belief graph.** mem0 stores flat facts. Zep requires running a separate service. recollectx gives you Zep-level memory quality as a pure Python library.
 
 ---
 
 ## Installation
 
-### Core (SQLite storage only)
-
 ```bash
-pip install re-collect
-```
+# Core (SQLite storage only, no LLM required)
+pip install recollectx
 
-### With optional extras
+# With local embeddings + FAISS (no API keys needed)
+pip install "recollectx[local]"
 
-```bash
-# OpenAI LLM + embeddings
-pip install "re-collect[openai]"
+# OpenAI
+pip install "recollectx[openai]"
 
 # Anthropic Claude
-pip install "re-collect[anthropic]"
+pip install "recollectx[anthropic]"
 
 # Local Ollama models
-pip install "re-collect[ollama]"
+pip install "recollectx[ollama]"
 
 # Qdrant vector backend
-pip install "re-collect[qdrant]"
+pip install "recollectx[qdrant]"
 
 # Pinecone vector backend
-pip install "re-collect[pinecone]"
-
-# Local FAISS + sentence-transformers (no API needed)
-pip install "re-collect[local]"
-
-# All LLM providers
-pip install "re-collect[llm]"
-
-# All vector backends
-pip install "re-collect[vector]"
+pip install "recollectx[pinecone]"
 
 # Everything
-pip install "re-collect[all]"
+pip install "recollectx[all]"
 ```
 
 ---
@@ -69,43 +70,36 @@ from recollectx import Memory, SemanticClaim, EpisodicClaim
 from recollectx.db import SessionLocal, create_tables
 from recollectx.storage import MemoryStore
 from recollectx.storage.vector import FAISSBackend
+from sentence_transformers import SentenceTransformer
 
-# 1. Set up the database
+# Setup
 create_tables()
 db = SessionLocal()
-
-# 2. Set up a vector backend (requires re-collect[local])
-vectors = FAISSBackend(embed_fn=my_embed_fn, dimension=384)
+model = SentenceTransformer("all-MiniLM-L6-v2")
+vectors = FAISSBackend(embed_fn=model.encode, dimension=384)
 store = MemoryStore(db, vectors)
-
-# 3. Create a Memory instance
 memory = Memory(storage=store)
 
-# 4. Store beliefs
-fact = SemanticClaim(
-    subject="sky",
-    predicate="has_color",
-    object="blue",
-    confidence=0.9,
-    evidence=("direct observation",),
-)
-memory.store(fact)
+# Store beliefs
+memory.store(SemanticClaim(
+    subject="user", predicate="prefers", object="dark mode",
+    confidence=0.95, importance=0.8,
+    evidence=("user said so in chat",),
+))
 
-event = EpisodicClaim(
-    summary="User mentioned they love pizza on Fridays",
-    confidence=0.85,
-    importance=0.7,
-)
-memory.store(event)
+memory.store(EpisodicClaim(
+    summary="User mentioned they hate early meetings",
+    confidence=0.85, importance=0.6,
+))
 
-# 5. Retrieve beliefs
+# Retrieve
 facts = memory.retrieve(type="semantic")
 episodes = memory.retrieve(type="episodic")
 
-# 6. Explain a belief
-explanation = memory.explain(fact.id)
-print(explanation["supported_by"])    # belief IDs that support this fact
-print(explanation["contradicted_by"]) # belief IDs that contradict it
+# Explain a belief
+explanation = memory.explain(facts[0].id)
+print(explanation["supported_by"])    # IDs of supporting beliefs
+print(explanation["contradicted_by"]) # IDs of contradicting beliefs
 ```
 
 ---
@@ -114,128 +108,168 @@ print(explanation["contradicted_by"]) # belief IDs that contradict it
 
 ### Claims
 
-Claims are immutable dataclasses representing beliefs:
+Claims are immutable typed beliefs. Two types:
 
 ```python
 from recollectx import SemanticClaim, EpisodicClaim
 
-# A fact: subject → predicate → object
+# Semantic: stable facts as subject → predicate → object triples
+# "The user prefers Python over JavaScript"
 fact = SemanticClaim(
     subject="user",
     predicate="prefers",
-    object="dark mode",
-    confidence=0.95,
-    importance=0.8,        # 0.0 = trivial, 1.0 = critical
-    evidence=("user said so in chat",),
+    object="Python",
+    confidence=0.9,     # How certain is this? [0.0, 1.0]
+    importance=0.8,     # How useful for future context? [0.0, 1.0]
+    evidence=("user said so explicitly",),
 )
 
-# An event
+# Episodic: time-bound events
+# "User was debugging a FastAPI issue last Tuesday"
 event = EpisodicClaim(
-    summary="User completed onboarding on March 28",
-    confidence=0.99,
-    importance=0.6,
+    summary="User was debugging a FastAPI issue",
+    confidence=0.85,
+    importance=0.5,
 )
 ```
 
-**Common fields on all claims:**
+**All claims share these fields:**
 
 | Field | Type | Description |
 |---|---|---|
 | `id` | `str` | Auto-generated UUID |
-| `confidence` | `float` | How certain is this belief? `[0.0, 1.0]` |
-| `importance` | `float` | How useful for future conversations? `[0.0, 1.0]` |
+| `confidence` | `float` | Certainty: `[0.0, 1.0]` |
+| `importance` | `float` | Relevance to future conversations: `[0.0, 1.0]` |
 | `evidence` | `tuple[str, ...]` | Supporting evidence strings |
+| `created_at` | `float` | Unix timestamp |
 | `support_count` | `int` | Times this belief has been reinforced |
 
 ---
 
 ### Memory
 
-`Memory` is the central interface. It wires together storage, write policies, the belief graph, optional LLM updater, and confidence propagation:
+`Memory` is the main interface. It wires together storage, write policies, the belief graph, LLM updater, and confidence propagation:
 
 ```python
-from recollectx import Memory
+from recollectx import Memory, MemoryUpdater, PropagationConfig
 from recollectx.policies import MinConfidence, MinEvidence
 
 memory = Memory(
     storage=store,
-    write_policy=MinConfidence(0.5) & MinEvidence(1),  # composable policies
+    write_policy=MinConfidence(0.6) & MinEvidence(1),
+    updater=MemoryUpdater(store=store, llm=llm),
+    propagation_config=PropagationConfig(
+        support_boost=0.10,
+        contradiction_decay=0.15,
+    ),
 )
 ```
 
-Key methods:
-
 | Method | Description |
 |---|---|
-| `store(claim)` | Store a claim (applies policy first) |
-| `retrieve(**kwargs)` | Query claims by type, confidence, etc. |
-| `explain(belief_id)` | Get direct supports/contradictions for a belief |
+| `store(claim)` | Store a claim (applies policy, updater, propagation) |
+| `retrieve(**kwargs)` | Query claims by `type`, `min_confidence` |
+| `explain(belief_id)` | Direct supports and contradictions |
 | `explain_deep(belief_id, max_depth)` | Recursive justification chain |
-| `explain_confidence_history(belief_id)` | Full confidence change history |
+| `explain_confidence_history(belief_id)` | Full audit log of confidence changes |
 | `add_support(src_id, dst_id)` | Manually add a support relationship |
 
 ---
 
 ### Belief Graph
 
-The belief graph tracks relationships between claims:
+The belief graph tracks typed relationships between claims. When you add a contradiction, confidence decays automatically. When you add support, confidence increases.
 
 ```python
-# Relationships are created automatically by the LLM updater,
-# or you can add them manually:
-memory.add_support(src_id=claim_a.id, dst_id=claim_b.id)
+# Contradiction: old belief conflicts with new evidence
+old = SemanticClaim(subject="user", predicate="works_as", object="student", confidence=0.9)
+new = SemanticClaim(subject="user", predicate="works_as", object="engineer", confidence=0.9)
+memory.store(old)
+memory.store(new)
+# If the LLM updater detects the contradiction, old.confidence drops by 0.15 automatically
 
-# Deep explanation traverses the graph
-result = memory.explain_deep(claim_b.id, max_depth=3)
-print(result.root.belief)        # the target belief
-print(result.total_nodes)        # how many nodes in the explanation
-print(result.cycle_detected)     # True if circular reasoning was found
+# Support: manually link two beliefs
+memory.add_support(src_id=evidence_claim.id, dst_id=fact_claim.id)
+# fact_claim.confidence increases by 0.10
+
+# Deep explanation: trace why a belief exists
+result = memory.explain_deep(fact_claim.id, max_depth=3)
+print(result.root.belief)    # the belief
+print(result.total_nodes)    # how many beliefs in the chain
+print(result.cycle_detected) # True if circular reasoning detected
 ```
+
+Edge types: `supports`, `contradicts`, `derives`, `similar`
+
+---
+
+### Temporal Decay
+
+recollectx uses **importance-modulated exponential decay** at retrieval time. Episodic memories fade faster than semantic ones. High-importance claims decay near-zero regardless of type.
+
+```
+score = exp(-λ × hours_elapsed × (1 - importance))
+
+Episodic  λ = 0.001  (faster — events are time-bound)
+Semantic  λ = 0.0001 (slower  — facts are durable)
+```
+
+Enable with `recency_bias > 0` in semantic search:
+
+```python
+# Recency-weighted retrieval
+results = store.semantic_query(
+    "user work preferences",
+    recency_bias=0.1,          # enables decay re-ranking
+    episodic_ttl_days=90,      # optional: drop episodic claims older than 90 * (1 + importance) days
+    k=10,
+)
+```
+
+A claim with `importance=0.9` after 6 weeks retains ~99% of its retrieval score. A low-importance episode (`importance=0.1`) retains ~50%. Semantic facts are nearly unaffected.
 
 ---
 
 ### Write Policies
 
-Policies filter claims before they reach storage. Combine with `&`:
+Policies filter claims before storage. Compose with `&`:
 
 ```python
 from recollectx.policies import MinConfidence, MinEvidence
 
-# Only store claims with confidence >= 0.6 and at least 1 piece of evidence
+# Reject claims with confidence < 0.6 or fewer than 1 evidence string
 policy = MinConfidence(0.6) & MinEvidence(1)
 
 memory = Memory(storage=store, write_policy=policy)
 ```
 
-Custom policies implement a simple callable protocol:
+Custom policies:
 
 ```python
 from recollectx.policies.base import Decision
 
-class MyPolicy:
+class ImportanceGate:
     def __call__(self, claim, memory) -> Decision:
-        if claim.importance < 0.3:
-            return Decision.REJECT
-        return Decision.ACCEPT
+        return Decision.ACCEPT if claim.importance >= 0.4 else Decision.REJECT
 ```
 
 ---
 
 ### Confidence Propagation
 
-When beliefs are related, confidence flows between them automatically:
-
 ```python
-from recollectx import Memory, PropagationConfig
+from recollectx import PropagationConfig
 
 config = PropagationConfig(
-    support_boost=0.10,        # supports increase confidence by this amount
-    contradiction_decay=0.15,  # contradictions reduce confidence by this amount
+    support_boost=0.10,           # +0.10 when supported
+    contradiction_decay=0.15,     # -0.15 when contradicted
+    min_confidence=0.01,          # floor
+    max_confidence=0.99,          # ceiling
+    symmetric_contradiction=True, # both claims decay, not just the target
 )
-
-memory = Memory(storage=store, propagation_config=config)
-# Now adding support/contradiction edges will adjust confidence scores
 ```
+
+Every confidence change is recorded as a `ConfidenceChangeEvent` with `claim_id`, `old_confidence`, `new_confidence`, `change_type`, and `caused_by_id`. Full audit trail available via `memory.explain_confidence_history(claim_id)`.
 
 ---
 
@@ -246,30 +280,19 @@ memory = Memory(storage=store, propagation_config=config)
 ```python
 from recollectx.llm.providers import OpenAIProvider, AnthropicProvider, OllamaProvider
 
-# OpenAI (requires re-collect[openai])
+# OpenAI  (pip install "recollectx[openai]")
 llm = OpenAIProvider(api_key="sk-...", model="gpt-4o-mini")
 
-# Anthropic (requires re-collect[anthropic])
+# Anthropic  (pip install "recollectx[anthropic]")
 llm = AnthropicProvider(api_key="sk-ant-...", model="claude-3-5-haiku-latest")
 
-# Ollama — local, free (requires re-collect[ollama])
+# Local Ollama — free, no API key  (pip install "recollectx[ollama]")
 llm = OllamaProvider(model="llama3", base_url="http://localhost:11434")
 ```
 
-### LLM-Powered Memory Updates
+All providers implement `LLMProvider` — a simple two-method protocol. Bring your own by implementing `generate()` and optionally `generate_structured()`.
 
-The `MemoryUpdater` uses an LLM to make intelligent write decisions:
-
-```python
-from recollectx import Memory, MemoryUpdater
-
-updater = MemoryUpdater(llm=llm, storage=store)
-memory = Memory(storage=store, updater=updater)
-
-# Now memory.store() will search for similar existing beliefs
-# and decide: ADD, UPDATE, DELETE, or skip (NONE)
-memory.store(new_claim)
-```
+---
 
 ### Claim Extraction from Text
 
@@ -278,26 +301,57 @@ from recollectx.extractors import LLMExtractor
 
 extractor = LLMExtractor(llm_provider=llm, min_confidence=0.5, max_claims_per_text=10)
 
-claims = await extractor.extract("Alice loves hiking on weekends and prefers trail mix as a snack.")
+# Single text
+claims = extractor.extract("I love hiking on weekends and prefer trail mix as a snack.")
 for claim in claims:
     memory.store(claim)
+
+# Batch
+all_claims = extractor.extract_batch([
+    "I just started a new job as an ML engineer.",
+    "I prefer Python over JavaScript for backend work.",
+])
 ```
+
+The extractor classifies each claim as `SemanticClaim` (stable fact) or `EpisodicClaim` (time-bound event) automatically.
+
+---
+
+### LLM-Powered Memory Updates
+
+The `MemoryUpdater` makes intelligent write decisions by searching for similar existing claims first:
+
+```python
+from recollectx import MemoryUpdater
+
+updater = MemoryUpdater(store=store, llm=llm, similarity_k=5)
+memory = Memory(storage=store, updater=updater)
+
+# memory.store() now runs an LLM decision pipeline:
+# ADD    — genuinely new information, store as new claim
+# UPDATE — adds detail to an existing fact, merge into target
+# DELETE — old fact is obsolete, remove old and store new
+# NONE   — exact duplicate, skip
+memory.store(new_claim)
+```
+
+The updater also auto-detects relationships (`supports`, `contradicts`, `derives`) between the new claim and existing ones, and creates belief graph edges.
 
 ---
 
 ## Vector Backends
 
-Vector backends enable semantic (similarity) search over beliefs.
-
-### FAISS (local, no server needed)
+### FAISS (local, no server)
 
 ```python
 from recollectx.storage.vector import FAISSBackend
+from sentence_transformers import SentenceTransformer
 
-vectors = FAISSBackend(embed_fn=my_embed_fn, dimension=384)
+model = SentenceTransformer("all-MiniLM-L6-v2")
+vectors = FAISSBackend(embed_fn=model.encode, dimension=384)
 ```
 
-### Qdrant
+### Qdrant (production)
 
 ```python
 from recollectx.storage.vector import QdrantBackend
@@ -305,12 +359,12 @@ from recollectx.storage.vector import QdrantBackend
 vectors = QdrantBackend(
     url="http://localhost:6333",
     collection_name="beliefs",
-    embedding_fn=my_embed_fn,
+    embedding_fn=model.encode,
     distance="cosine",
 )
 ```
 
-### Pinecone
+### Pinecone (managed)
 
 ```python
 from recollectx.storage.vector import PineconeBackend
@@ -318,46 +372,109 @@ from recollectx.storage.vector import PineconeBackend
 vectors = PineconeBackend(
     api_key="your-api-key",
     index_name="beliefs",
-    embedding_fn=my_embed_fn,
+    embedding_fn=model.encode,
 )
 ```
 
 ---
 
-## LangGraph Memory Agent
+## Memory Agent (LangGraph)
 
-Answer questions by letting an agent retrieve from memory using tools:
+Answer questions by letting an agent retrieve from memory using tool-based reasoning:
 
 ```python
 from recollectx.agents import MemoryAgent
-from langchain_ollama import ChatOllama
+from langchain_anthropic import ChatAnthropic
 
-llm = ChatOllama(model="llama3")
+llm = ChatAnthropic(model="claude-3-5-haiku-latest")
 agent = MemoryAgent(memory=memory, llm=llm)
 
-response = agent.answer("What food does the user like?")
-print(response.answer)       # "The user loves pizza"
-print(response.tools_used)   # ["search_memories", "get_facts_about"]
+response = agent.answer("What programming language does the user prefer?")
+print(response.answer)      # "The user prefers Python"
+print(response.tools_used)  # ["get_facts_about", "search_memories"]
 ```
 
-Available retrieval tools: `search_memories`, `get_recent_memories`, `get_facts_about`, `combine_facts`.
+Available tools: `search_memories`, `get_recent_memories`, `get_facts_about`, `combine_facts`
 
 ---
 
 ## Deduplication
 
-Detect and merge duplicate or near-duplicate beliefs:
+Detect and merge near-duplicate beliefs using embedding similarity + LLM merge decisions:
 
 ```python
 from recollectx.deduplication import ClaimDeduplicator
 
 deduplicator = ClaimDeduplicator(
     storage=store,
-    llm=llm,
+    embedding_provider=embedding_provider,
+    llm_provider=llm,
     similarity_threshold=0.85,
 )
 
-await deduplicator.run()  # scans storage and merges duplicates
+result = deduplicator.process(new_claim)
+print(result.action)  # "ADD", "UPDATE", "DELETE", or "NONE"
+print(result.reason)  # LLM's explanation
+```
+
+---
+
+## Full Example
+
+```python
+from recollectx import (
+    Memory, MemoryUpdater, PropagationConfig,
+    SemanticClaim, EpisodicClaim,
+)
+from recollectx.agents import MemoryAgent
+from recollectx.db import SessionLocal, create_tables
+from recollectx.extractors import LLMExtractor
+from recollectx.llm.providers import OllamaProvider
+from recollectx.policies import MinConfidence
+from recollectx.storage import MemoryStore
+from recollectx.storage.vector import FAISSBackend
+from langchain_ollama import ChatOllama
+from sentence_transformers import SentenceTransformer
+
+# 1. Setup
+create_tables()
+db = SessionLocal()
+embed_model = SentenceTransformer("all-MiniLM-L6-v2")
+vectors = FAISSBackend(embed_fn=embed_model.encode, dimension=384)
+store = MemoryStore(db, vectors)
+llm = OllamaProvider(model="llama3")
+
+# 2. Memory with all features
+memory = Memory(
+    storage=store,
+    write_policy=MinConfidence(0.5),
+    updater=MemoryUpdater(store=store, llm=llm),
+    propagation_config=PropagationConfig(support_boost=0.10, contradiction_decay=0.15),
+)
+
+# 3. Extract claims from conversation
+extractor = LLMExtractor(llm, min_confidence=0.5)
+claims = extractor.extract("I started a new job as an ML engineer. I love Python.")
+for claim in claims:
+    memory.store(claim)
+
+# 4. Query with temporal decay
+results = store.semantic_query(
+    "user career and skills",
+    recency_bias=0.1,
+    episodic_ttl_days=90,
+    k=5,
+)
+
+# 5. Explain a belief
+explanation = memory.explain_deep(results[0].id, max_depth=3)
+print(f"Belief: {results[0]}")
+print(f"Supported by {len(explanation.root.supported_by)} claims")
+
+# 6. Q&A agent
+agent = MemoryAgent(memory=memory, llm=ChatOllama(model="llama3"))
+response = agent.answer("What does the user do for work?")
+print(response.answer)  # "The user works as an ML engineer"
 ```
 
 ---
@@ -365,20 +482,20 @@ await deduplicator.run()  # scans storage and merges duplicates
 ## Architecture
 
 ```
-re_collect/
-├── claims.py          # EpisodicClaim, SemanticClaim dataclasses
-├── memory.py          # Memory — main interface
-├── updater.py         # LLM-powered write decisions
-├── propagation.py     # Confidence propagation on relationships
+recollectx/
+├── claims.py          # EpisodicClaim, SemanticClaim — typed immutable beliefs
+├── memory.py          # Memory — main interface (store, retrieve, explain)
+├── updater.py         # LLM-powered ADD / UPDATE / DELETE decisions
+├── propagation.py     # Confidence propagation on supports / contradictions
 ├── state.py           # AgentState for dynamic state management
 │
-├── db/                # SQLAlchemy ORM (ClaimModel, BeliefEdgeModel, ConfidenceHistoryModel)
-├── storage/           # MemoryStore (SQLite + vector), vector backends (FAISS, Qdrant, Pinecone)
-├── graph/             # BeliefGraph, edges, deep explanation
-├── policies/          # Composable write policies
-├── llm/               # LLMProvider protocol + OpenAI/Anthropic/Ollama/OpenRouter/Local providers
-├── extractors/        # LLM-powered claim extraction from text
-├── agents/            # LangGraph-based Q&A agent + tools
+├── db/                # SQLAlchemy ORM models + session management
+├── storage/           # MemoryStore (SQLite + vector) + FAISS / Qdrant / Pinecone
+├── graph/             # BeliefGraph, edges, deep explanation traversal
+├── policies/          # Composable write policies (MinConfidence, MinEvidence)
+├── llm/               # LLMProvider protocol + OpenAI / Anthropic / Ollama / OpenRouter
+├── extractors/        # LLM-powered claim extraction from raw text
+├── agents/            # LangGraph ReAct agent + retrieval tools
 └── deduplication/     # Embedding similarity + LLM merge decisions
 ```
 
@@ -386,14 +503,14 @@ re_collect/
 
 ## Requirements
 
-- Python >= 3.12
-- SQLAlchemy >= 2.0
-- LangChain ecosystem (langchain-core, langchain-openai, langchain-anthropic, langgraph)
+- Python ≥ 3.12
+- SQLAlchemy ≥ 2.0
+- LangChain ecosystem (langchain-core, langgraph)
 
-Optional dependencies vary by feature — see [Installation](#installation).
+All other dependencies are optional — install only what you need via extras.
 
 ---
 
 ## License
 
-MIT
+MIT — [Bihan Banerjee](https://github.com/BihanBanerjee)
