@@ -21,15 +21,19 @@ pip install recollectx
 
 | Feature | recollectx | mem0 | Zep | LangMem |
 |---|---|---|---|---|
-| Typed claims (episodic / semantic) | ✅ | ❌ | ❌ | ❌ |
-| Belief graph (supports / contradicts / derives) | ✅ | ❌ | ✅ | ❌ |
+| Typed claims (episodic / semantic) | ✅ | ❌¹ | ❌ | ❌¹ |
+| Epistemic belief graph (supports / contradicts / derives) | ✅ | ❌² | ❌³ | ❌ |
 | Confidence propagation on contradictions | ✅ | ❌ | ❌ | ❌ |
 | Importance-modulated temporal decay | ✅ | ❌ | ❌ | ❌ |
 | Pure Python library (no service required) | ✅ | ✅ | ❌ | ✅ |
-| Pluggable LLM + vector backends | ✅ | ✅ | ❌ | ✅ |
+| Pluggable LLM + vector backends | ✅ | ✅ | ✅ | ✅ |
 | Deep justification chains | ✅ | ❌ | ❌ | ❌ |
 
-**recollectx is the only Python memory library that combines structured belief semantics with a contradiction-aware belief graph.** mem0 stores flat facts. Zep requires running a separate service. recollectx gives you Zep-level memory quality as a pure Python library.
+¹ mem0 and LangMem label memory types (episodic/semantic) but store unstructured text — no enforced schema or typed claim objects.
+² mem0 has an optional entity-relation graph (Mem0g) but edges are domain labels (`works_at`, `lives_in`), not epistemic edges (`supports`, `contradicts`, `derives`).
+³ Zep/Graphiti has a temporal knowledge graph but requires Neo4j or FalkorDB as a separate service — no in-process pure Python mode.
+
+**recollectx is the only Python memory library that combines typed claim objects, an epistemic belief graph, and confidence propagation — as a pure library with no server required.** mem0's graph tracks entity relationships, not belief justifications. Zep's graph needs a database server. Neither propagates confidence when beliefs contradict.
 
 ---
 
