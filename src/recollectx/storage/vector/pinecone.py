@@ -71,7 +71,7 @@ class PineconeBackend:
         cls,
         api_key: str,
         index_name: str,
-        embedding_provider: "EmbeddingProvider",
+        embedding_provider: EmbeddingProvider,
         namespace: str = "",
         metric: str = "cosine",
         auto_create_index: bool = True,
@@ -89,7 +89,7 @@ class PineconeBackend:
             **kwargs,
         )
 
-    def _get_index(self) -> "Index":
+    def _get_index(self) -> Index:
         """Get or create the Pinecone index."""
         if self._index is not None:
             return self._index

@@ -36,34 +36,34 @@ Example:
 
 from recollectx.llm.base import EmbeddingProvider, LLMProvider, LLMResponse
 from recollectx.llm.prompts import (
-    # Main prompts
-    MEMORY_EXTRACTION_PROMPT,
-    MEMORY_UPDATE_PROMPT,
-    MEMORY_ANSWER_PROMPT,
-    TOOL_SELECTION_PROMPT,
-    PREFERENCE_ANALYSIS_PROMPT,
-    CONVERSATION_STYLE_PROMPT,
-    # JSON schemas
-    EXTRACTION_SCHEMA,
-    UPDATE_SCHEMA,
-    TOOL_SELECTION_SCHEMA,
     # Legacy aliases
     CLAIM_EXTRACTION_SCHEMA,
     CLAIM_EXTRACTION_SYSTEM_PROMPT,
+    CONVERSATION_STYLE_PROMPT,
     DEDUPLICATION_SCHEMA,
     DEDUPLICATION_SYSTEM_PROMPT,
+    # JSON schemas
+    EXTRACTION_SCHEMA,
+    MEMORY_ANSWER_PROMPT,
+    # Main prompts
+    MEMORY_EXTRACTION_PROMPT,
+    MEMORY_UPDATE_PROMPT,
+    PREFERENCE_ANALYSIS_PROMPT,
     PREFERENCE_EXTRACTION_SCHEMA,
     PREFERENCE_EXTRACTION_SYSTEM_PROMPT,
+    TOOL_SELECTION_PROMPT,
+    TOOL_SELECTION_SCHEMA,
+    UPDATE_SCHEMA,
+    build_deduplication_prompt,
     # Prompt builders
     build_extraction_prompt,
-    build_deduplication_prompt,
     build_preference_extraction_prompt,
-    get_extraction_prompt,
     get_answer_prompt,
-    get_tool_selection_prompt,
-    get_update_prompt,
+    get_extraction_prompt,
     get_preference_prompt,
     get_style_prompt,
+    get_tool_selection_prompt,
+    get_update_prompt,
 )
 
 __all__ = [

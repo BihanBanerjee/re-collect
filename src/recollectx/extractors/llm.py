@@ -15,7 +15,7 @@ from typing import Any
 
 from recollectx.claims import Claim, EpisodicClaim, SemanticClaim
 from recollectx.llm.base import LLMProvider
-from recollectx.llm.prompts import get_extraction_prompt, EXTRACTION_SCHEMA
+from recollectx.llm.prompts import EXTRACTION_SCHEMA, get_extraction_prompt
 
 
 class LLMExtractor:

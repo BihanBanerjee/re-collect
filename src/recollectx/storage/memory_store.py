@@ -82,8 +82,8 @@ def _apply_recency_boost(
     High-importance claims decay much more slowly regardless of type.
     The boost_factor scales both λ values proportionally.
     """
-    _LAMBDA_EPISODIC = 0.001
-    _LAMBDA_SEMANTIC = 0.0001
+    lambda_episodic = 0.001
+    lambda_semantic = 0.0001
 
     now = time.time()
     n = len(claims)
@@ -92,7 +92,7 @@ def _apply_recency_boost(
     for i, claim in enumerate(claims):
         position_score = 1.0 - (i / n) if n > 1 else 1.0
         hours_elapsed = (now - claim.created_at) / 3600
-        lam = _LAMBDA_EPISODIC if claim.type == "episodic" else _LAMBDA_SEMANTIC
+        lam = lambda_episodic if claim.type == "episodic" else lambda_semantic
         lam *= boost_factor  # scale by caller's bias (default 1.0 → no change)
         decay = math.exp(-lam * hours_elapsed * (1.0 - claim.importance))
         combined = position_score * decay

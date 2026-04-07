@@ -65,7 +65,7 @@ class QdrantBackend:
         cls,
         url: str,
         collection_name: str,
-        embedding_provider: "EmbeddingProvider",
+        embedding_provider: EmbeddingProvider,
         api_key: str | None = None,
         distance: str = "cosine",
         auto_create_collection: bool = True,
@@ -83,7 +83,7 @@ class QdrantBackend:
             **kwargs,
         )
 
-    def _get_client(self) -> "QdrantClient":
+    def _get_client(self) -> QdrantClient:
         """Get or create the Qdrant client."""
         if self._client is None:
             try:

@@ -10,9 +10,9 @@ Tools:
 
 import time
 from typing import Any
+
 from langchain.tools import tool
 from pydantic import BaseModel, Field
-
 
 # Global memory reference (set by MemoryAgent)
 _memory_instance = None

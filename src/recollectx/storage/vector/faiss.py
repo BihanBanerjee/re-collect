@@ -68,8 +68,9 @@ class FAISSBackend:
 
     def _try_load(self, path: str) -> None:
         """Try to load a saved index from disk."""
-        import os
         import json
+        import os
+
         import faiss
 
         if os.path.exists(path):
@@ -88,6 +89,7 @@ class FAISSBackend:
             raise ValueError("No index_path configured. Pass index_path to __init__.")
 
         import json
+
         import faiss
 
         faiss.write_index(self._index, self._index_path)

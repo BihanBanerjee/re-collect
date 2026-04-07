@@ -12,8 +12,8 @@ Architecture:
 from dataclasses import dataclass
 from typing import Any
 
-from langchain_core.language_models import BaseChatModel
 from langchain.agents import create_agent
+from langchain_core.language_models import BaseChatModel
 
 from .tools import get_memory_tools, set_memory_instance
 
