@@ -15,16 +15,16 @@ from langchain.tools import tool
 from pydantic import BaseModel, Field
 
 # Global memory reference (set by MemoryAgent)
-_memory_instance = None
+_memory_instance: Any = None
 
 
-def set_memory_instance(memory):
+def set_memory_instance(memory: Any) -> None:
     """Set the global memory instance for tools to use."""
     global _memory_instance
     _memory_instance = memory
 
 
-def get_memory_instance():
+def get_memory_instance() -> Any:
     """Get the global memory instance."""
     if _memory_instance is None:
         raise RuntimeError("Memory instance not set. Call set_memory_instance() first.")
@@ -177,7 +177,7 @@ def _combine_facts_impl(topic: str) -> str:
     results = []
     seen_ids = set()
 
-    def _add(claim):
+    def _add(claim: Any) -> None:
         cid = getattr(claim, "id", id(claim))
         if cid not in seen_ids:
             seen_ids.add(cid)
@@ -268,7 +268,7 @@ def combine_facts_tool(topic: str) -> str:
     return _combine_facts_impl(topic)
 
 
-def get_memory_tools() -> list:
+def get_memory_tools() -> list[Any]:
     """Get all memory retrieval tools as LangChain tools."""
     return [
         search_memories_tool,

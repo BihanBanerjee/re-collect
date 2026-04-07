@@ -10,7 +10,7 @@ Architecture:
 """
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 from langchain.agents import create_agent
 from langchain_core.language_models import BaseChatModel
@@ -58,10 +58,10 @@ class MemoryAgent:
 
     def __init__(
         self,
-        memory,
+        memory: Any,
         llm: BaseChatModel,
         verbose: bool = False,
-    ):
+    ) -> None:
         self.memory = memory
         self.llm = llm
         self.verbose = verbose
@@ -70,7 +70,7 @@ class MemoryAgent:
         self.tools = get_memory_tools()
         self._create_agent()
 
-    def _create_agent(self):
+    def _create_agent(self) -> None:
         """Create the LangChain agent with tools."""
         system_prompt = (
             "You answer questions about a user based on their stored memories. "
@@ -152,7 +152,7 @@ class MemoryAgent:
         """Direct semantic search without LLM (for simple queries)."""
         if hasattr(self.memory.storage, "semantic_query"):
             try:
-                return self.memory.storage.semantic_query(query, k=limit)
+                return cast(list[Any], self.memory.storage.semantic_query(query, k=limit))
             except Exception:
                 pass
 

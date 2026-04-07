@@ -11,7 +11,7 @@ The extractor classifies memories into two types:
 import json
 import re
 import time
-from typing import Any
+from typing import Any, cast
 
 from recollectx.claims import Claim, EpisodicClaim, SemanticClaim
 from recollectx.llm.base import LLMProvider
@@ -146,7 +146,7 @@ class LLMExtractor:
         """
         # Try direct parse
         try:
-            return json.loads(text)
+            return cast(dict[str, Any], json.loads(text))
         except json.JSONDecodeError:
             pass
 
@@ -154,7 +154,7 @@ class LLMExtractor:
         json_match = re.search(r"```(?:json)?\s*([\s\S]*?)```", text)
         if json_match:
             try:
-                return json.loads(json_match.group(1))
+                return cast(dict[str, Any], json.loads(json_match.group(1)))
             except json.JSONDecodeError:
                 pass
 
@@ -162,7 +162,7 @@ class LLMExtractor:
         brace_match = re.search(r"\{[\s\S]*\}", text)
         if brace_match:
             try:
-                return json.loads(brace_match.group())
+                return cast(dict[str, Any], json.loads(brace_match.group()))
             except json.JSONDecodeError:
                 pass
 
@@ -187,11 +187,12 @@ class LLMExtractor:
                 continue
 
             try:
+                current_claim: Claim
                 if memory_type == "episodic":
                     content = memory_data.get("content", "").strip()
                     if not content:
                         continue
-                    claim = self._create_episodic_claim(content, confidence, context)
+                    current_claim = self._create_episodic_claim(content, confidence, context)
 
                 elif memory_type == "semantic":
                     subject = memory_data.get("subject", default_subject).strip() or default_subject
@@ -199,7 +200,7 @@ class LLMExtractor:
                     obj = memory_data.get("object", "").strip()
                     if not predicate or not obj:
                         continue
-                    claim = SemanticClaim(
+                    current_claim = SemanticClaim(
                         subject=subject,
                         predicate=predicate,
                         object=obj,
@@ -210,7 +211,7 @@ class LLMExtractor:
                 else:
                     continue
 
-                claims.append(claim)
+                claims.append(current_claim)
 
             except (ValueError, KeyError) as e:
                 print(f"Failed to create claim: {e}")

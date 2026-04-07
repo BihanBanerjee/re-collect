@@ -22,7 +22,7 @@ Example:
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING:
     from sentence_transformers import SentenceTransformer
@@ -147,7 +147,7 @@ class LocalEmbedder:
             normalize_embeddings=self._normalize,
             convert_to_numpy=True,
         )
-        return embedding.tolist()
+        return cast(list[float], embedding.tolist())
 
     def embed_batch(self, texts: list[str]) -> list[list[float]]:
         """Generate embeddings for multiple texts in a single call.
@@ -175,7 +175,7 @@ class LocalEmbedder:
             convert_to_numpy=True,
             show_progress_bar=False,
         )
-        return embeddings.tolist()
+        return cast(list[list[float]], embeddings.tolist())
 
     @property
     def dimension(self) -> int:
@@ -194,7 +194,7 @@ class LocalEmbedder:
 
         # Load model to get dimension
         model = self._get_model()
-        self._dimension = model.get_sentence_embedding_dimension()
+        self._dimension = model.get_sentence_embedding_dimension() or 384
         return self._dimension
 
     def close(self) -> None:
@@ -261,7 +261,7 @@ class CachedEmbedder:
             return self._cache[text]
 
         # Compute embedding
-        embedding = self._provider.embed(text)
+        embedding: list[float] = cast(list[float], self._provider.embed(text))
 
         # Cache with LRU eviction
         if len(self._cache) >= self._max_size:
@@ -319,7 +319,7 @@ class CachedEmbedder:
     @property
     def dimension(self) -> int:
         """Return the dimensionality of embedding vectors."""
-        return self._provider.dimension
+        return cast(int, self._provider.dimension)
 
     def clear_cache(self) -> None:
         """Clear the embedding cache."""

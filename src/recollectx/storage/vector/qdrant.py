@@ -98,7 +98,7 @@ class QdrantBackend:
                 url=self._url,
                 api_key=self._api_key,
                 prefer_grpc=self._prefer_grpc,
-                timeout=self._timeout,
+                timeout=int(self._timeout) if self._timeout is not None else None,
             )
 
         return self._client
@@ -178,7 +178,7 @@ class QdrantBackend:
 
         query_vector = self._embed_fn(query)
 
-        results = client.search(
+        results = client.search(  # type: ignore[attr-defined]
             collection_name=self._collection_name,
             query_vector=query_vector,
             limit=k,
@@ -196,7 +196,7 @@ class QdrantBackend:
 
         query_vector = self._embed_fn(query)
 
-        results = client.search(
+        results = client.search(  # type: ignore[attr-defined]
             collection_name=self._collection_name,
             query_vector=query_vector,
             limit=k,

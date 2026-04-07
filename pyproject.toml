@@ -89,6 +89,10 @@ warn_unused_configs = true
 packages = ["recollectx"]
 mypy_path = "src"
 
+[[tool.mypy.overrides]]
+module = ["faiss", "faiss.*"]
+ignore_missing_imports = true
+
 [tool.ruff]
 line-length = 100
 target-version = "py312"

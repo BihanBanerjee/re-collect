@@ -24,7 +24,7 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from pinecone import Index
+    from pinecone import Index  # type: ignore[attr-defined]
 
     from recollectx.llm.base import EmbeddingProvider
 

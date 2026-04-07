@@ -28,7 +28,7 @@ from __future__ import annotations
 
 import json
 import re
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from recollectx.llm.base import LLMResponse
 
@@ -233,7 +233,7 @@ class AnthropicProvider:
         content = response.content.strip()
 
         try:
-            return json.loads(content)
+            return cast(dict[str, Any], json.loads(content))
         except json.JSONDecodeError:
             # Try to extract JSON from response
             return self._extract_json(content)
@@ -244,7 +244,7 @@ class AnthropicProvider:
         json_match = re.search(r"```(?:json)?\s*([\s\S]*?)```", text)
         if json_match:
             try:
-                return json.loads(json_match.group(1))
+                return cast(dict[str, Any], json.loads(json_match.group(1)))
             except json.JSONDecodeError:
                 pass
 
@@ -252,7 +252,7 @@ class AnthropicProvider:
         brace_match = re.search(r"\{[\s\S]*\}", text)
         if brace_match:
             try:
-                return json.loads(brace_match.group(0))
+                return cast(dict[str, Any], json.loads(brace_match.group(0)))
             except json.JSONDecodeError:
                 pass
 

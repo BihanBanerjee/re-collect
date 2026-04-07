@@ -35,7 +35,7 @@ Example:
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import Any, cast
 
 from recollectx.llm.base import LLMResponse
 
@@ -249,7 +249,7 @@ class OllamaProvider:
         content = response.content.strip()
 
         try:
-            return json.loads(content)
+            return cast(dict[str, Any], json.loads(content))
         except json.JSONDecodeError:
             # Try to extract JSON from response
             return self._extract_json(content)
@@ -262,7 +262,7 @@ class OllamaProvider:
         json_match = re.search(r"```(?:json)?\s*([\s\S]*?)```", text)
         if json_match:
             try:
-                return json.loads(json_match.group(1))
+                return cast(dict[str, Any], json.loads(json_match.group(1)))
             except json.JSONDecodeError:
                 pass
 
@@ -270,7 +270,7 @@ class OllamaProvider:
         brace_match = re.search(r"\{[\s\S]*\}", text)
         if brace_match:
             try:
-                return json.loads(brace_match.group(0))
+                return cast(dict[str, Any], json.loads(brace_match.group(0)))
             except json.JSONDecodeError:
                 pass
 
@@ -304,7 +304,7 @@ class OllamaProvider:
         response.raise_for_status()
         data = response.json()
 
-        embedding = data.get("embedding", [])
+        embedding: list[float] = cast(list[float], data.get("embedding", []))
 
         # Cache dimension if not set
         if self._embedding_dimension is None and embedding:

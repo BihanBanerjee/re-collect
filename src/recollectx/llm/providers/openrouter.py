@@ -31,7 +31,12 @@ Example:
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from recollectx.llm.providers.openai import OpenAIProvider
+
+if TYPE_CHECKING:
+    from openai import OpenAI
 
 # OpenRouter API endpoint
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
@@ -87,7 +92,7 @@ class OpenRouterProvider(OpenAIProvider):
         )
         self._app_name = app_name
 
-    def _get_client(self):
+    def _get_client(self) -> OpenAI:
         """Get or create the OpenAI client with OpenRouter headers."""
         if self._client is None:
             try:

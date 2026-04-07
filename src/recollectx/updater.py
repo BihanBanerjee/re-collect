@@ -11,6 +11,7 @@ import json
 import logging
 import re
 from dataclasses import dataclass, field
+from typing import Any
 
 from recollectx.claims import (
     Claim,
@@ -89,7 +90,7 @@ class MemoryUpdater:
 
     def _ask_llm(
         self, new_claim: Claim, existing: list[Claim]
-    ) -> dict:
+    ) -> dict[str, Any]:
         """Ask the LLM to decide what to do with the new claim."""
         existing_text = json.dumps(
             [
@@ -154,7 +155,7 @@ class MemoryUpdater:
             "reason": "LLM unavailable, defaulting to ADD",
         }
 
-    def _parse_response(self, text: str) -> dict | None:
+    def _parse_response(self, text: str) -> dict[str, Any] | None:
         """Parse the LLM's JSON response."""
         md_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL)
         if md_match:
@@ -192,7 +193,7 @@ class MemoryUpdater:
 
     def _execute(
         self,
-        decision: dict,
+        decision: dict[str, Any],
         new_claim: Claim,
         similar: list[Claim],
         similar_ids: list[str],
@@ -284,7 +285,7 @@ class MemoryUpdater:
     def _create_edges(
         self,
         claim_id: str,
-        relationships: list[dict],
+        relationships: list[dict[str, Any]],
         valid_ids: set[str],
     ) -> list[BeliefEdge]:
         """Create relationship edges from LLM-detected relationships."""

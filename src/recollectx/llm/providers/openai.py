@@ -28,7 +28,7 @@ Example:
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from recollectx.llm.base import LLMResponse
 
@@ -162,7 +162,7 @@ class OpenAIProvider:
 
         response = client.chat.completions.create(
             model=kwargs.pop("model", self.model),
-            messages=messages,
+            messages=messages,  # type: ignore[arg-type]
             temperature=temperature,
             max_tokens=max_tokens,
             **kwargs,
@@ -231,7 +231,7 @@ class OpenAIProvider:
         messages.append({"role": "user", "content": prompt})
 
         # Use JSON mode for compatible models
-        response = client.chat.completions.create(
+        response = client.chat.completions.create(  # type: ignore[call-overload]
             model=kwargs.pop("model", self.model),
             messages=messages,
             response_format={"type": "json_object"},
@@ -243,7 +243,7 @@ class OpenAIProvider:
         content = response.choices[0].message.content or "{}"
 
         try:
-            return json.loads(content)
+            return cast(dict[str, Any], json.loads(content))
         except json.JSONDecodeError:
             # Try to extract JSON from response
             return self._extract_json(content)
@@ -256,7 +256,7 @@ class OpenAIProvider:
         json_match = re.search(r"```(?:json)?\s*([\s\S]*?)```", text)
         if json_match:
             try:
-                return json.loads(json_match.group(1))
+                return cast(dict[str, Any], json.loads(json_match.group(1)))
             except json.JSONDecodeError:
                 pass
 
@@ -264,7 +264,7 @@ class OpenAIProvider:
         brace_match = re.search(r"\{[\s\S]*\}", text)
         if brace_match:
             try:
-                return json.loads(brace_match.group(0))
+                return cast(dict[str, Any], json.loads(brace_match.group(0)))
             except json.JSONDecodeError:
                 pass
 

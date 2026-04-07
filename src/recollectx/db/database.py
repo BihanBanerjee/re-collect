@@ -5,8 +5,11 @@ SQLite only (no PostgreSQL).
 """
 
 import os
+from collections.abc import Generator
+from typing import Any
 
 from sqlalchemy import create_engine
+from sqlalchemy.engine import Engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 
@@ -20,7 +23,7 @@ _engine = None
 _SessionLocal = None
 
 
-def get_engine(db_path: str | None = None):
+def get_engine(db_path: str | None = None) -> Engine:
     """Get or create the database engine.
 
     Args:
@@ -42,7 +45,7 @@ def get_engine(db_path: str | None = None):
     return _engine
 
 
-def get_session_local(db_path: str | None = None):
+def get_session_local(db_path: str | None = None) -> Any:
     """Get or create the SessionLocal factory."""
     global _SessionLocal
     if _SessionLocal is None:
@@ -56,10 +59,11 @@ def get_session_local(db_path: str | None = None):
 
 def SessionLocal(db_path: str | None = None) -> Session:
     """Create a new database session."""
-    return get_session_local(db_path)()
+    session: Session = get_session_local(db_path)()
+    return session
 
 
-def get_db(db_path: str | None = None):
+def get_db(db_path: str | None = None) -> Generator[Session, None, None]:
     """Database session generator. Yields a session and ensures it's closed."""
     db = SessionLocal(db_path)
     try:
