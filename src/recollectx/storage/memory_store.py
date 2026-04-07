@@ -19,6 +19,7 @@ Architecture:
 """
 
 import logging
+import math
 import time
 from typing import Any
 
@@ -68,22 +69,33 @@ def _apply_recency_boost(
     claims: list[Claim],
     boost_factor: float,
 ) -> list[Claim]:
-    """Re-rank claims using three-signal scoring.
+    """Re-rank claims using importance-modulated exponential decay scoring.
 
-    Combines semantic similarity (position), importance, and recency
+    Combines semantic similarity (position), importance, and temporal decay
     into a single score:
-        score = position_score x importance x recency_factor
+        score = position_score × exp(-λ × hours_elapsed × (1 - importance))
+
+    Decay rates by claim type:
+        episodic: λ = 0.001  (faster decay — events are time-bound)
+        semantic: λ = 0.0001 (slower decay — facts are durable)
+
+    High-importance claims decay much more slowly regardless of type.
+    The boost_factor scales both λ values proportionally.
     """
+    _LAMBDA_EPISODIC = 0.001
+    _LAMBDA_SEMANTIC = 0.0001
+
     now = time.time()
     n = len(claims)
 
     scored: list[tuple[float, Claim]] = []
     for i, claim in enumerate(claims):
         position_score = 1.0 - (i / n) if n > 1 else 1.0
-        importance = claim.importance
-        age_days = (now - claim.created_at) / 86400
-        recency_factor = 1.0 / (1.0 + age_days * boost_factor)
-        combined = position_score * importance * recency_factor
+        hours_elapsed = (now - claim.created_at) / 3600
+        lam = _LAMBDA_EPISODIC if claim.type == "episodic" else _LAMBDA_SEMANTIC
+        lam *= boost_factor  # scale by caller's bias (default 1.0 → no change)
+        decay = math.exp(-lam * hours_elapsed * (1.0 - claim.importance))
+        combined = position_score * decay
         scored.append((combined, claim))
 
     scored.sort(key=lambda x: x[0], reverse=True)
@@ -209,6 +221,7 @@ class MemoryStore:
         min_confidence: float = 0.0,
         k: int = 10,
         recency_bias: float = 0.0,
+        episodic_ttl_days: float | None = None,
     ) -> list[Claim]:
         """Query beliefs using semantic similarity.
 
@@ -216,8 +229,14 @@ class MemoryStore:
         1. Vectors suggest candidate IDs (over-fetch by 3x)
         2. Storage fetches authoritative beliefs
         3. Hard filters apply (type, confidence)
-        4. Recency re-ranking (if recency_bias > 0)
-        5. Results are limited
+        4. Soft expiry: drop low-importance old episodic claims (if episodic_ttl_days set)
+        5. Importance-modulated exponential decay re-ranking (if recency_bias > 0)
+        6. Results are limited
+
+        Args:
+            episodic_ttl_days: Base TTL for episodic claims. Effective TTL per claim is
+                               ttl_days * (1 + importance), so important episodes survive
+                               longer. Semantic claims are never expired by this filter.
         """
         if not query.strip():
             return []
@@ -235,6 +254,16 @@ class MemoryStore:
             if (type is None or b.type == type)
             and b.confidence >= min_confidence
         ]
+
+        # Soft expiry: episodic claims older than their importance-scaled TTL are dropped
+        if episodic_ttl_days is not None:
+            now = time.time()
+            ttl_seconds = episodic_ttl_days * 86400
+            filtered = [
+                b for b in filtered
+                if b.type != "episodic"
+                or (now - b.created_at) <= ttl_seconds * (1.0 + b.importance)
+            ]
 
         if recency_bias > 0 and filtered:
             filtered = _apply_recency_boost(filtered, recency_bias)
