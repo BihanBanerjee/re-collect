@@ -86,11 +86,18 @@ python_version = "3.12"
 strict = true
 warn_return_any = true
 warn_unused_configs = true
+warn_unused_ignores = false
 packages = ["recollectx"]
 mypy_path = "src"
 
 [[tool.mypy.overrides]]
-module = ["faiss", "faiss.*"]
+module = [
+    "faiss", "faiss.*",
+    "numpy", "numpy.*",
+    "sentence_transformers", "sentence_transformers.*",
+    "qdrant_client", "qdrant_client.*",
+    "pinecone", "pinecone.*",
+]
 ignore_missing_imports = true
 
 [tool.ruff]
