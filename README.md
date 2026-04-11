@@ -516,6 +516,14 @@ All other dependencies are optional — install only what you need via extras.
 
 ---
 
+## Built with recollectx
+
+**Holdmind** — a production conversational AI that builds a per-user belief graph from chat history, backed by Qdrant semantic retrieval and deployed at [holdmind.bihanbanerjee.com](https://holdmind.bihanbanerjee.com).
+
+![Holdmind Demo](assets/holdmind-demo.png)
+
+---
+
 ## License
 
 MIT — [Bihan Banerjee](https://github.com/BihanBanerjee)
